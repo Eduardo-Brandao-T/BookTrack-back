@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { OAuth2Client } from 'google-auth-library';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { EMAIL_NOT_FOUND, INVALID_PASSWORD } from 'src/utils/constants';
 
 @Injectable()
 export class AuthService {
@@ -12,16 +13,42 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async googleLogin(idToken: string) {
-    const ticket = await this.client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+  async login(email: string, password: string) {
+    const user = await this.usersService.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException(EMAIL_NOT_FOUND);
+    }
+    if (user.password !== password) {
+      throw new UnauthorizedException(INVALID_PASSWORD);
+    }
 
-    const payload = ticket.getPayload();
+    const accessToken = this.jwtService.sign({ userId: user.id });
+    return {
+      access_token: accessToken,
+      user,
+    };
+  }
+
+  async googleLogin(idToken: string) {
+    if (!idToken) {
+      throw new UnauthorizedException('ID Token não fornecido');
+    }
+
+    let payload: any;
+
+    try {
+      const ticket = await this.client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      payload = ticket.getPayload();
+    } catch (error) {
+      throw new UnauthorizedException('Token Google inválido ou expirado');
+    }
 
     if (!payload || !payload.email) {
-      throw new UnauthorizedException('Invalid Google token');
+      throw new UnauthorizedException('Token Google sem e-mail válido');
     }
 
     let user = await this.usersService.findOne({ email: payload.email });
@@ -33,6 +60,10 @@ export class AuthService {
     }
 
     const accessToken = this.jwtService.sign({ userId: user.id });
-    return { accessToken, hasCompleteProfile: user.hasCompleteProfile, user };
+
+    return {
+      access_token: accessToken,
+      user,
+    };
   }
 }

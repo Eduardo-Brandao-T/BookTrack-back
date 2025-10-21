@@ -14,7 +14,9 @@ export class UsersService {
     return this.prisma.user.create({
       data: {
         ...createUserDto,
-        birthDate: new Date(createUserDto.birthDate!),
+        ...(createUserDto.birthDate && {
+          birthDate: new Date(createUserDto.birthDate),
+        }),
       },
     });
   }
@@ -43,7 +45,12 @@ export class UsersService {
   ): Promise<User> {
     return this.prisma.user.update({
       where: whereClause,
-      data: updateUserDto,
+      data: {
+        ...updateUserDto,
+        ...(updateUserDto.birthDate && {
+          birthDate: new Date(updateUserDto.birthDate),
+        }),
+      },
     });
   }
 }
