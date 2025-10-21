@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, User } from 'generated/prisma';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +12,12 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        ...createUserDto,
+        ...(createUserDto.birthDate && {
+          birthDate: new Date(createUserDto.birthDate),
+        }),
+      },
     });
   }
 
@@ -40,7 +45,12 @@ export class UsersService {
   ): Promise<User> {
     return this.prisma.user.update({
       where: whereClause,
-      data: updateUserDto,
+      data: {
+        ...updateUserDto,
+        ...(updateUserDto.birthDate && {
+          birthDate: new Date(updateUserDto.birthDate),
+        }),
+      },
     });
   }
 }

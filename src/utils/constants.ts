@@ -1,0 +1,3 @@
+// Errors
+export const EMAIL_NOT_FOUND = 'EMAIL_NOT_FOUND';
+export const INVALID_PASSWORD = 'INVALID_PASSWORD';

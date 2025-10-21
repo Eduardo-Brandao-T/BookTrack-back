@@ -7,7 +7,7 @@ import {
   IsEnum,
   IsBoolean,
 } from 'class-validator';
-import { Gender } from 'generated/prisma';
+import { Gender } from '@prisma/client';
 
 export class CreateUserDto {
   @IsEmail()
