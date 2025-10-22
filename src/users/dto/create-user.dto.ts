@@ -29,7 +29,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  birthDate?: string;
+  birthDate?: Date;
 
   @IsBoolean()
   @IsOptional()

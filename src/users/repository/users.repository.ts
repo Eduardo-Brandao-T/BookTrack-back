@@ -3,7 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class UsersRepository {
@@ -37,6 +37,12 @@ export class UsersRepository {
     return this.prisma.user.update({
       where: { id },
       data,
+    });
+  }
+
+  async findMany(whereClause?: Prisma.UserWhereInput): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where: whereClause,
     });
   }
 

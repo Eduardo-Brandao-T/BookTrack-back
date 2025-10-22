@@ -1,56 +1,54 @@
 // src/users/users.service.ts
-
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { UsersRepository } from './repository/users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    return this.prisma.user.create({
-      data: {
-        ...createUserDto,
-        ...(createUserDto.birthDate && {
-          birthDate: new Date(createUserDto.birthDate),
-        }),
-      },
+    let hashedPassword: string | undefined = undefined;
+    if (createUserDto.password) {
+      hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    }
+
+    return this.usersRepository.createUser({
+      ...createUserDto,
+      ...(hashedPassword && { password: hashedPassword }),
+      ...(createUserDto.birthDate && {
+        birthDate: new Date(createUserDto.birthDate),
+      }),
     });
   }
 
   async findMany(whereClause?: Prisma.UserWhereInput): Promise<User[]> {
-    return this.prisma.user.findMany({
-      where: whereClause,
-    });
+    return this.usersRepository.findMany(whereClause);
   }
 
-  async findOne(whereClause: Prisma.UserWhereInput): Promise<User | null> {
-    return this.prisma.user.findFirst({
-      where: whereClause,
-    });
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findByEmail(email);
   }
 
   async findById(id: number): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
-    });
+    return this.usersRepository.findById(id);
   }
 
-  async update(
-    whereClause: Prisma.UserWhereUniqueInput,
-    updateUserDto: UpdateUserDto,
-  ): Promise<User> {
-    return this.prisma.user.update({
-      where: whereClause,
-      data: {
-        ...updateUserDto,
-        ...(updateUserDto.birthDate && {
-          birthDate: new Date(updateUserDto.birthDate),
-        }),
-      },
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    let hashedPassword: string | undefined = undefined;
+    if (updateUserDto.password) {
+      hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    return this.usersRepository.updateUser(id, {
+      ...updateUserDto,
+      ...(hashedPassword && { password: hashedPassword }),
+      ...(updateUserDto.birthDate && {
+        birthDate: new Date(updateUserDto.birthDate),
+      }),
     });
   }
 }

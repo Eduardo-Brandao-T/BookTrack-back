@@ -13,6 +13,12 @@ enum Gender {
   OTHER
 }
 
+enum BookStatus {
+  TO_READ
+  READING
+  READ
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -23,4 +29,38 @@ model User {
   hasCompleteProfile Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  books     UserBook[]
+}
+
+model Book {
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  publisher   String
+  publishedYear Int?
+  isbn        String   @unique  @db.VarChar(13)
+  coverUrl    String?
+  description String?
+  pageCount   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       UserBook[]
+}
+
+model UserBook {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  book       Book     @relation(fields: [bookId], references: [id])
+  bookId     Int
+  status     BookStatus
+  rating     Decimal?   @db.Decimal(3, 1)
+  favorite   Boolean  @default(false)
+  review     String?
+  hasBook    Boolean  @default(false)
+  finishedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, bookId])
 }
