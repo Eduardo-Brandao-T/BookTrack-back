@@ -1,5 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { admin } from 'src/firebase/firebase-admin';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,10 @@ export class AuthController {
 
   @Post('google')
   async googleLogin(@Body('idToken') idToken: string) {
-    return this.authService.googleLogin(idToken);
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    if (!decoded.email) {
+      throw new BadRequestException('O token do Google não contém email.');
+    }
+    return this.authService.googleLogin(decoded.email);
   }
 }
