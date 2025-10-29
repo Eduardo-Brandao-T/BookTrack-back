@@ -20,9 +20,9 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_PASSWORD);
     }
 
-    const accessToken = this.jwtService.sign({ userId: user.id });
+    const token = this.jwtService.sign({ userId: user.id });
     return {
-      access_token: accessToken,
+      token,
       user,
     };
   }
@@ -37,8 +37,8 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email };
-    const access_token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload);
 
-    return { user, access_token };
+    return { user, token };
   }
 }
